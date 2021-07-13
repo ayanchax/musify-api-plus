@@ -71,6 +71,123 @@ router.get("/songs", (req, res, next) => {
     );
 });
 
+// Get Playlists Details
+router.get("/playlists", (req, res, next) => {
+    res.setHeader("Content-Type", "application/json");
+
+    let mainPromise = [];
+
+    let playlists = {};
+
+    const q = req.query.query;
+    if (q == null || q === "" || q === undefined) {
+        res.status(404).json({
+            msg: "Supply a valid search term",
+            diagnostics: "User Input Blank or Null or ambigious",
+            error: 404,
+        });
+    }
+
+    mainPromise.push(
+        axios
+        .get(process.env.SONG_ENDPOINT + q, axiosConfig)
+        .then((response) => {
+            var response_data = response.data;
+            let playlist_response = response_data["playlists"]["data"];
+            if (playlist_response.length == 0) {
+                res.status(404).json("No search results found");
+            }
+            playlists = playlist_response;
+            Promise.all(mainPromise).then(() => {
+                res.status(200).json(playlists);
+            });
+        })
+        .catch((error) => {
+            res
+                .status(500)
+                .json({ msg: "Error occured.", diagnostics: error, error: 500 });
+        })
+    );
+});
+
+// get albums details
+router.get("/albums", (req, res, next) => {
+    res.setHeader("Content-Type", "application/json");
+
+    let mainPromise = [];
+
+    let albums = {};
+
+    const q = req.query.query;
+    if (q == null || q === "" || q === undefined) {
+        res.status(404).json({
+            msg: "Supply a valid search term",
+            diagnostics: "User Input Blank or Null or ambigious",
+            error: 404,
+        });
+    }
+
+    mainPromise.push(
+        axios
+        .get(process.env.SONG_ENDPOINT + q, axiosConfig)
+        .then((response) => {
+            var response_data = response.data;
+            let album_response = response_data["playlists"]["data"];
+            if (album_response.length == 0) {
+                res.status(404).json("No search results found");
+            }
+            albums = album_response;
+            Promise.all(mainPromise).then(() => {
+                res.status(200).json(albums);
+            });
+        })
+        .catch((error) => {
+            res
+                .status(500)
+                .json({ msg: "Error occured.", diagnostics: error, error: 500 });
+        })
+    );
+});
+
+// get artists Details
+router.get("/artists", (req, res, next) => {
+    res.setHeader("Content-Type", "application/json");
+
+    let mainPromise = [];
+
+    let artists = {};
+
+    const q = req.query.query;
+    if (q == null || q === "" || q === undefined) {
+        res.status(404).json({
+            msg: "Supply a valid search term",
+            diagnostics: "User Input Blank or Null or ambigious",
+            error: 404,
+        });
+    }
+
+    mainPromise.push(
+        axios
+        .get(process.env.SONG_ENDPOINT + q, axiosConfig)
+        .then((response) => {
+            var response_data = response.data;
+            let artist_Response = response_data["artists"]["data"];
+            if (artist_Response.length == 0) {
+                res.status(404).json("No search results found");
+            }
+            artists = artist_Response;
+            Promise.all(mainPromise).then(() => {
+                res.status(200).json(artists);
+            });
+        })
+        .catch((error) => {
+            res
+                .status(500)
+                .json({ msg: "Error occured.", diagnostics: error, error: 500 });
+        })
+    );
+});
+
 // Get Song by song identifier.
 router.get("/song", (req, res, next) => {
     res.setHeader("Content-Type", "application/json");
@@ -132,7 +249,9 @@ router.get("/song", (req, res, next) => {
 router.get("/album", (req, res, next) => {
     res.setHeader("Content-Type", "application/json");
     let mainPromise = [];
+    let lyricPromises = [];
     let album = {};
+    let lyricData = [];
     const q = req.query.albumid;
     if (q == null || q === "" || q === undefined) {
         res.status(404).json({
@@ -141,6 +260,11 @@ router.get("/album", (req, res, next) => {
             error: 404,
         });
     }
+    let l = req.query.lyrics;
+    if (!isBoolean(l)) {
+        l = false;
+    }
+
     mainPromise.push(
         axios
         .get(process.env.ALBUM_DETAILS_ENDPOINT + q, axiosConfig)
@@ -149,12 +273,30 @@ router.get("/album", (req, res, next) => {
             if (album_Response.length == 0) {
                 res.status(404).json("No search results found");
             }
-            album = album_Response;
+
+            var songs = album_Response.songs;
+
+            songs.forEach((_song) => {
+                formatSongResponseForAlbum(_song);
+                if (l === "true") {
+                    lyricPromises.push(
+                        axios
+                        .get(process.env.LYRICS_DETAIL_ENDPOINT + _song.id, axiosConfig)
+                        .then((lyricResponse) => {
+                            formatLyricResponseForAlbum(lyricResponse, lyricData, _song);
+                        })
+                    );
+                }
+            });
+            album = response.data;
             Promise.all(mainPromise).then(() => {
-                res.status(200).json(album);
+                Promise.all(lyricPromises).then(() => {
+                    res.status(200).json(album);
+                });
             });
         })
         .catch((err) => {
+            console.log(err);
             res.status(500).json({
                 msg: "Error occured.",
                 diagnostics: err,
@@ -168,6 +310,8 @@ router.get("/album", (req, res, next) => {
 router.get("/playlist", (req, res, next) => {
     res.setHeader("Content-Type", "application/json");
     let mainPromise = [];
+    let lyricPromises = [];
+    let lyricData = [];
     let playlist = {};
     const q = req.query.pid;
     if (q == null || q === "" || q === undefined) {
@@ -177,6 +321,10 @@ router.get("/playlist", (req, res, next) => {
             error: 404,
         });
     }
+    let l = req.query.lyrics;
+    if (!isBoolean(l)) {
+        l = false;
+    }
     mainPromise.push(
         axios
         .get(process.env.PLAYLIST_DETAILS_ENDPOINT + q, axiosConfig)
@@ -185,9 +333,28 @@ router.get("/playlist", (req, res, next) => {
             if (playlist_Response.length == 0) {
                 res.status(404).json("No search results found");
             }
-            playlist = playlist_Response;
+
+            var songs = playlist_Response.songs;
+
+            songs.forEach((_song) => {
+                formatSongResponseForAlbum(_song);
+                if (l === "true") {
+                    lyricPromises.push(
+                        axios
+                        .get(process.env.LYRICS_DETAIL_ENDPOINT + _song.id, axiosConfig)
+                        .then((lyricResponse) => {
+                            formatLyricResponseForAlbum(lyricResponse, lyricData, _song);
+                        })
+                    );
+                }
+            });
+
+            playlist = response.data;
+
             Promise.all(mainPromise).then(() => {
-                res.status(200).json(playlist);
+                Promise.all(lyricPromises).then(() => {
+                    res.status(200).json(playlist);
+                });
             });
         })
         .catch((err) => {
@@ -258,6 +425,14 @@ function formatLyricResponse(lyricResponse, lyricData, response, _song) {
     }
 }
 
+function formatLyricResponseForAlbum(lyricResponse, lyricData, _song) {
+    if (lyricResponse.data.lyrics !== undefined)
+        lyricData.push(lyricResponse.data.lyrics);
+    if (_song["has_lyrics"] && lyricData !== undefined) {
+        _song["lyrics"] = lyricData;
+    }
+}
+
 function addQuotes(value) {
     var quotedlet = "'" + value + "'";
     return quotedlet;
@@ -291,6 +466,27 @@ function formatSongResponse(response, _song) {
         "150x150",
         "500x500"
     );
+}
+
+function formatSongResponseForAlbum(_song) {
+    let mediaPrevURL = _song.media_preview_url;
+    if (mediaPrevURL) {
+        mediaPrevURL = mediaPrevURL.replace("preview", "aac");
+
+        if (_song["320kbps"]) {
+            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_320.mp4");
+        } else {
+            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_160.mp4");
+        }
+        _song.media_url = mediaPrevURL;
+    }
+    _song["song"] = format(_song["song"]);
+    _song["music"] = format(_song["music"]);
+    _song["singers"] = format(_song["singers"]);
+    _song["starring"] = format(_song["starring"]);
+    _song["album"] = format(_song["album"]);
+    _song["primary_artists"] = format(_song["primary_artists"]);
+    _song["image"] = _song["image"].replace("150x150", "500x500");
 }
 
 function format(data) {
