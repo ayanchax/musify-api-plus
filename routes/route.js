@@ -10,9 +10,22 @@ router.get("/songs", (req, res, next) => {
     let lyricPromises = [];
     let songs = [];
     let lyricData = [];
+    const q = req.query.query;
+    if (q == null || q === "" || q === undefined) {
+        res.status(404).json({
+            msg: "Supply a valid search term",
+            diagnostics: "User Input Blank or Null or ambigious",
+            error: 404,
+        });
+    }
+    let l = req.query.lyrics;
+    if (!isBoolean(l)) {
+        l = false;
+    }
+
     mainPromise.push(
         axios
-        .get(process.env.SONG_ENDPOINT + req.query.query)
+        .get(process.env.SONG_ENDPOINT + q)
         .then((response) => {
             var response_data = response.data;
             let song_response = response_data["songs"]["data"];
@@ -25,29 +38,36 @@ router.get("/songs", (req, res, next) => {
                     .get(process.env.SONG_DETAILS_ENDPOINT + _song.id)
                     .then((response) => {
                         formatSongResponse(response, _song);
-                        lyricPromises.push(
-                            axios
-                            .get(process.env.LYRICS_DETAIL_ENDPOINT + _song.id)
-                            .then((lyricResponse) => {
-                                formatLyricResponse(
-                                    lyricResponse,
-                                    lyricData,
-                                    response,
-                                    _song
-                                );
-                            })
-                        );
+                        if (l === "true") {
+                            lyricPromises.push(
+                                axios
+                                .get(process.env.LYRICS_DETAIL_ENDPOINT + _song.id)
+                                .then((lyricResponse) => {
+                                    formatLyricResponse(
+                                        lyricResponse,
+                                        lyricData,
+                                        response,
+                                        _song
+                                    );
+                                })
+                            );
+                        }
                         songs.push(response.data);
                     })
                 );
             });
             promify(mainPromise, promises, lyricPromises, res, songs);
         })
-        .catch(() => {
-            res.status(500).json("Error");
+        .catch((error) => {
+            res
+                .status(500)
+                .json({ msg: "Error occured.", diagnostics: error, error: 500 });
         })
     );
 });
+const isBoolean = (l) => {
+    return Boolean(l) === false || Boolean(l) === true;
+};
 
 function promify(mainPromise, promises, lyricPromises, res, songs) {
     Promise.all(mainPromise).then(() => {
