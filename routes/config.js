@@ -43,4 +43,8 @@ const axiosConfig = {
         "User-Agent": getRandomUserAgent(userAgents),
     },
 };
-module.exports = { axiosConfig };
+
+function setResponseHeader(res) {
+    res.setHeader("Content-Type", "application/json");
+}
+module.exports = { axiosConfig, setResponseHeader };

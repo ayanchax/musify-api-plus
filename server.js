@@ -1,4 +1,3 @@
-//importing modules for server side code
 const express = require("express");
 const bodyparser = require("body-parser");
 const cors = require("cors");
@@ -12,16 +11,16 @@ dotenv.config();
 app.use(cors());
 app.use(bodyparser.json());
 
-//2 static files setup __dirname is the project root. Our static file location are stored in public folder under root directory
-// All the display on the UI will be refered from this location's index.html keeping it as a display wrapper for all the various display rendering
+//2 static files setup: __dirname is the project root.
+// Our static file location are stored in public folder under root directory
 app.use(express.static(path.join(__dirname, "public")));
 
-// api/router setup
+//3 api/router setup
 const key = process.env.API_KEY;
 app.use("/api/" + key, router);
 
-// this method runs at the entry point of starting the applications
-// Listening to the express server.
+// 4 Listening to the express server.
+// this method runs at the entry point of starting the node js applications
 const port = process.env.PORT;
 app.listen(port, () => {
     console.log("API started at port: " + port);
