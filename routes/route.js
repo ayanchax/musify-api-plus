@@ -174,6 +174,7 @@ router.get("/artists", (req, res, next) => {
             if (artist_Response.length == 0) {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
+            helper.formatImageForPlaylistAndAlbum(artist_Response);
             artists = artist_Response;
             Promise.all(mainPromise).then(() => {
                 res.status(200).json(artists);

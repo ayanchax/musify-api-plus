@@ -79,7 +79,9 @@ function formatSongResponseForAlbumAndPlaylist(_song) {
 }
 
 function formatImageForPlaylistAndAlbum(response) {
-    response["image"] = response["image"].replace("50x50", "250x250");
+    response.forEach((_obj) => {
+        _obj["image"] = _obj["image"].replace("50x50", "250x250");
+    });
 }
 
 function format(data) {
