@@ -414,6 +414,7 @@ router.get("/lyrics", (req, res, next) => {
     );
 });
 
+// search by query - universal result
 router.get("/search", (req, res, next) => {
     axiosConfig.setResponseHeader(res);
     let promise = [];
