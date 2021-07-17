@@ -414,4 +414,49 @@ router.get("/lyrics", (req, res, next) => {
     );
 });
 
+router.get("/search", (req, res, next) => {
+    axiosConfig.setResponseHeader(res);
+    let promise = [];
+    const q = req.query.query;
+    if (q == null || q === "" || q === undefined) {
+        res.status(404).json({
+            msg: messages.SUPPLY_VALID_IDENTIFIER,
+            diagnostics: messages.AMBIGIOUS,
+            error: 404,
+        });
+    }
+    promise.push(
+        axios
+        .get(process.env.SONG_ENDPOINT + q, axiosConfig)
+        .then((response) => {
+            var response_data = response.data;
+            if (response_data.length == 0) {
+                res.status(404).json(messages.NO_SEARCH_RESULTS);
+            }
+            Promise.all(promise).then(() => {
+                let _data = [];
+                let albums = response_data["albums"]["data"];
+                let songs = response_data["songs"]["data"];
+                let playlists = response_data["playlists"]["data"];
+                let artists = response_data["artists"]["data"];
+                let topResult = response_data["topquery"]["data"];
+                _data.push({
+                    songs,
+                    albums,
+                    playlists,
+                    artists,
+                    topResult,
+                });
+                console.log(_data);
+                res.status(200).json(_data);
+            });
+        })
+        .catch((error) => {
+            res
+                .status(500)
+                .json({ msg: messages.ERROR, diagnostics: error, error: 500 });
+        })
+    );
+});
+
 module.exports = router;
