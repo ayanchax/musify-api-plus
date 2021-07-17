@@ -134,7 +134,7 @@ router.get("/albums", (req, res, next) => {
         .get(process.env.SONG_ENDPOINT + q, axiosConfig)
         .then((response) => {
             var response_data = response.data;
-            let album_response = response_data["playlists"]["data"];
+            let album_response = response_data["albums"]["data"];
             if (album_response.length == 0) {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
@@ -417,7 +417,10 @@ router.get("/lyrics", (req, res, next) => {
 // search by query - universal result
 router.get("/search", (req, res, next) => {
     axiosConfig.setResponseHeader(res);
-    let promise = [];
+    let mainPromise = [];
+    let songPromise = [];
+    let albumPromise = [];
+    let playlistPromise = [];
     const q = req.query.query;
     if (q == null || q === "" || q === undefined) {
         res.status(404).json({
@@ -426,7 +429,7 @@ router.get("/search", (req, res, next) => {
             error: 404,
         });
     }
-    promise.push(
+    mainPromise.push(
         axios
         .get(process.env.SONG_ENDPOINT + q, axiosConfig)
         .then((response) => {
@@ -434,22 +437,75 @@ router.get("/search", (req, res, next) => {
             if (response_data.length == 0) {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
-            Promise.all(promise).then(() => {
-                let _data = [];
-                let albums = response_data["albums"]["data"];
-                let songs = response_data["songs"]["data"];
-                let playlists = response_data["playlists"]["data"];
-                let artists = response_data["artists"]["data"];
-                let topResult = response_data["topquery"]["data"];
-                _data.push({
-                    songs,
-                    albums,
-                    playlists,
-                    artists,
-                    topResult,
+
+            let _data = [];
+            let songs = response_data["songs"]["data"];
+            songs.forEach((_song, index) => {
+                songPromise.push(
+                    axios
+                    .get(process.env.SONG_DETAILS_ENDPOINT + _song.id, axiosConfig)
+                    .then((response) => {
+                        helper.formatSongResponse(response, _song);
+                        songs[index].songDetail = response.data[_song.id];
+                    })
+                );
+            });
+
+            let albums = response_data["albums"]["data"];
+            albums.forEach((_album, index) => {
+                let songsPerAlbum = [];
+                albumPromise.push(
+                    axios
+                    .get(process.env.ALBUM_DETAILS_ENDPOINT + _album.id, axiosConfig)
+                    .then((response) => {
+                        var album_Response = response.data;
+                        var songs = album_Response.songs;
+                        songs.forEach((_song) => {
+                            helper.formatSongResponseForAlbumAndPlaylist(_song);
+                            songsPerAlbum.push(_song);
+                        });
+                        albums[index].songs = songsPerAlbum;
+                    })
+                );
+            });
+            let playlists = response_data["playlists"]["data"];
+            playlists.forEach((_playlist, index) => {
+                let songsPerPlaylist = [];
+                playlistPromise.push(
+                    axios
+                    .get(
+                        process.env.PLAYLIST_DETAILS_ENDPOINT + _playlist.id,
+                        axiosConfig
+                    )
+                    .then((response) => {
+                        var playlist_Response = response.data;
+                        var songs = playlist_Response.songs;
+                        songs.forEach((_song) => {
+                            helper.formatSongResponseForAlbumAndPlaylist(_song);
+                            songsPerPlaylist.push(_song);
+                        });
+                        playlists[index].songs = songsPerPlaylist;
+                    })
+                );
+            });
+
+            let artists = response_data["artists"]["data"];
+            let topResult = response_data["topquery"]["data"];
+            _data.push({
+                songs,
+                albums,
+                playlists,
+                artists,
+                topResult,
+            });
+            Promise.all(mainPromise).then(() => {
+                Promise.all(songPromise).then(() => {
+                    Promise.all(albumPromise).then(() => {
+                        Promise.all(playlistPromise).then(() => {
+                            res.status(200).json(_data);
+                        });
+                    });
                 });
-                console.log(_data);
-                res.status(200).json(_data);
             });
         })
         .catch((error) => {

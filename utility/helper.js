@@ -57,6 +57,32 @@ function formatSongResponse(response, _song) {
     );
 }
 
+function formatSOngResponseOnSearch(response, id) {
+    let mediaPrevURL = response.data[id].media_preview_url;
+    if (mediaPrevURL) {
+        mediaPrevURL = mediaPrevURL.replace("preview", "aac");
+
+        if (response.data[id]["320kbps"]) {
+            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_320.mp4");
+        } else {
+            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_160.mp4");
+        }
+        response.data[id].media_url = mediaPrevURL;
+    }
+    response.data[id]["song"] = format(response.data[id]["song"]);
+    response.data[id]["music"] = format(response.data[id]["music"]);
+    response.data[id]["singers"] = format(response.data[id]["singers"]);
+    response.data[id]["starring"] = format(response.data[id]["starring"]);
+    response.data[id]["album"] = format(response.data[id]["album"]);
+    response.data[id]["primary_artists"] = format(
+        response.data[id]["primary_artists"]
+    );
+    response.data[id]["image"] = response.data[id]["image"].replace(
+        "150x150",
+        "500x500"
+    );
+}
+
 function formatSongResponseForAlbumAndPlaylist(_song) {
     let mediaPrevURL = _song.media_preview_url;
     if (mediaPrevURL) {
@@ -95,6 +121,7 @@ module.exports = {
     format,
     formatSongResponseForAlbumAndPlaylist,
     formatSongResponse,
+    formatSOngResponseOnSearch,
     formatLyricResponseForAlbumAndPlaylist,
     formatLyricResponse,
     formatImageForPlaylistAndAlbum,
