@@ -421,6 +421,7 @@ router.get("/search", (req, res, next) => {
     let songPromise = [];
     let albumPromise = [];
     let playlistPromise = [];
+    let artistsMap = [];
     const q = req.query.query;
     if (q == null || q === "" || q === undefined) {
         res.status(404).json({
@@ -447,10 +448,10 @@ router.get("/search", (req, res, next) => {
                     .then((response) => {
                         helper.formatSongResponse(response, _song);
                         songs[index].songDetail = response.data[_song.id];
+                        artistsMap.push(response.data[_song.id].primary_artists);
                     })
                 );
             });
-
             let albums = response_data["albums"]["data"];
             albums.forEach((_album, index) => {
                 let songsPerAlbum = [];
@@ -489,19 +490,19 @@ router.get("/search", (req, res, next) => {
                 );
             });
 
-            let artists = response_data["artists"]["data"];
             let topResult = response_data["topquery"]["data"];
-            _data.push({
-                songs,
-                albums,
-                playlists,
-                artists,
-                topResult,
-            });
             Promise.all(mainPromise).then(() => {
                 Promise.all(songPromise).then(() => {
+                    let artists = helper.getRelatedArtists(artistsMap);
                     Promise.all(albumPromise).then(() => {
                         Promise.all(playlistPromise).then(() => {
+                            _data.push({
+                                songs,
+                                albums,
+                                playlists,
+                                artists,
+                                topResult,
+                            });
                             res.status(200).json(_data);
                         });
                     });

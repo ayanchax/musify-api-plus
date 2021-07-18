@@ -117,6 +117,72 @@ function format(data) {
         .replace("&#039;", "'");
 }
 
+const randomKeyWord = (keyword) => {
+    if (keyword[Math.floor(Math.random() * keyword.length)] === undefined) {
+        return keyword[0];
+    }
+    return keyword[Math.floor(Math.random() * keyword.length)];
+};
+const noImage =
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLG67OCTdsrpf_nDsSC03j5j2x7pSK7XOogQ&usqp=CAU";
+
+const splitData = (str, delim) => {
+    try {
+        let _array = str.split(delim);
+        let _returningArray = [];
+        _array.forEach((obj) => {
+            _returningArray.push({ name: obj });
+        });
+        return _returningArray;
+    } catch (error) {
+        _array.push({ name: str });
+        return _array;
+    }
+};
+
+const getRelatedArtists = (artistsMap) => {
+    let modified_top_artist_array = splitData(randomKeyWord(artistsMap), ",");
+
+    let found = false;
+    const data = require("../routes/data");
+    modified_top_artist_array.forEach((modified_Artist, _mindex) => {
+        data.artists[0].INDIAN.forEach((artist, index) => {
+            if (artist.name.trim() === modified_Artist.name.trim()) {
+                modified_top_artist_array[_mindex] = {
+                    name: modified_Artist.name.trim(),
+                    image: artist.url,
+                    type: artist.type,
+                };
+                found = true;
+            }
+        });
+    });
+    if (!found) {
+        modified_top_artist_array.forEach((modified_Artist, _mindex) => {
+            data.artists[1].WESTERN.forEach((artist) => {
+                if (artist.name.trim() === modified_Artist.name.trim()) {
+                    modified_top_artist_array[_mindex] = {
+                        name: modified_Artist.name.trim(),
+                        image: artist.url,
+                        type: artist.type,
+                    };
+                    found = true;
+                }
+            });
+        });
+    }
+
+    modified_top_artist_array.forEach((modified_Artist, _mindex) => {
+        if (modified_Artist.image === undefined) {
+            modified_top_artist_array[_mindex] = {
+                name: modified_Artist.name,
+                image: noImage,
+                type: "Unavailable",
+            };
+        }
+    });
+    return modified_top_artist_array;
+};
 module.exports = {
     format,
     formatSongResponseForAlbumAndPlaylist,
@@ -126,4 +192,8 @@ module.exports = {
     formatLyricResponse,
     formatImageForPlaylistAndAlbum,
     isBoolean,
+    randomKeyWord,
+    noImage,
+    splitData,
+    getRelatedArtists,
 };
