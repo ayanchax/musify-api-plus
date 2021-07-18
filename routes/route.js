@@ -517,4 +517,15 @@ router.get("/search", (req, res, next) => {
     );
 });
 
+// get artists, bands, regional section boiler plate data
+router.get("/boilerplate", (req, res, next) => {
+    const data = require("./data");
+    let response = [];
+    response.push({
+        artists: data.artists,
+        bands: data.bands,
+        regional: data.regionalSection,
+    });
+    res.status(200).json(response);
+});
 module.exports = router;

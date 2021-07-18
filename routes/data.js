@@ -398,7 +398,32 @@ const bands = [{
     ],
 }, ];
 
+const regionalSection = [{
+        title: "বাংলা",
+        city: "কলকাতা",
+        url: "images/regional/kolkata.jfif",
+    },
+    {
+        title: "অসমীয়া",
+        city: "আসাম",
+        url: "images/regional/assam.jfif",
+    },
+
+    {
+        title: "ଓଡିଆ",
+        city: "ଓରିସା",
+        url: "images/regional/orissa.png",
+    },
+
+    {
+        title: "ಕನ್ನಡ",
+        city: "ಬೆಂಗಳೂರು",
+        url: "images/regional/bangalore.jfif",
+    },
+];
+
 module.exports = {
     bands,
     artists,
+    regionalSection,
 };
