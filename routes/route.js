@@ -342,9 +342,11 @@ router.get("/playlist", (req, res, next) => {
             }
 
             var songs = playlist_Response.songs;
-
+            var totalDurationOfSongs = 0;
             songs.forEach((_song) => {
                 helper.formatSongResponseForAlbumAndPlaylist(_song);
+                totalDurationOfSongs =
+                    parseInt(totalDurationOfSongs) + parseInt(_song.duration);
                 if (l === "true") {
                     lyricPromises.push(
                         axios
@@ -361,6 +363,7 @@ router.get("/playlist", (req, res, next) => {
             });
 
             playlist = response.data;
+            playlist["totalDurationOfSongs"] = totalDurationOfSongs;
 
             Promise.all(mainPromise).then(() => {
                 Promise.all(lyricPromises).then(() => {
