@@ -365,7 +365,15 @@ router.get("/playlist", (req, res, next) => {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
 
+            if (
+                playlist_Response.list === undefined ||
+                playlist_Response.list === "undefined" ||
+                playlist_Response.list === ""
+            ) {
+                res.status(200).json(playlist_Response);
+            }
             var songs = playlist_Response.list;
+
             var _songs = [];
             var totalDurationOfSongs = 0;
             songs.forEach((_song) => {
@@ -515,19 +523,6 @@ router.get("/boilerplate", (req, res, next) => {
         regional: data.regionalSection,
     });
     res.status(200).json(response);
-});
-
-router.get("/checkPlaylist", (req, res, next) => {
-    const q = 155227885;
-    //  "https://www.jiosaavn.com/api.php?__call=playlist.getDetails&api_version=4&_format=json&_marker=0&ctx=web6dot0&listid="
-    axios
-        .get(
-            "https://www.jiosaavn.com/api.php?__call=playlist.getDetails&api_version=4&_format=json&_marker=0&ctx=web6dot0&listid=" +
-            q
-        )
-        .then((response) => {
-            res.status(200).json(response.data);
-        });
 });
 
 module.exports = router;
