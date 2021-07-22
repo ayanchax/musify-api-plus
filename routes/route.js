@@ -360,6 +360,8 @@ router.get("/playlist", (req, res, next) => {
         axios
         .get(process.env.PLAYLIST_DETAILS_ENDPOINT + q, axiosConfig)
         .then((response) => {
+            console.log(response);
+            console.log(process.env.PLAYLIST_DETAILS_ENDPOINT + q);
             var playlist_Response = response.data;
             if (playlist_Response.length == 0) {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
