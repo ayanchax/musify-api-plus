@@ -2,23 +2,10 @@ const isBoolean = (l) => {
     return Boolean(l) === false || Boolean(l) === true;
 };
 
-function formatLyricResponse(lyricResponse, lyricData, response, _song) {
-    if (lyricResponse.data.lyrics !== undefined)
-        lyricData.push(lyricResponse.data.lyrics);
-    if (response.data[_song.id]["has_lyrics"] && lyricData !== undefined) {
-        response.data[_song.id]["lyrics"] = lyricData;
-    }
-}
-
-function formatLyricResponseForAlbumAndPlaylist(
-    lyricResponse,
-    lyricData,
-    _song
-) {
-    if (lyricResponse.data.lyrics !== undefined)
-        lyricData.push(lyricResponse.data.lyrics);
-    if (_song["has_lyrics"] && lyricData !== undefined) {
-        _song["lyrics"] = lyricData;
+function formatLyricResponse_V2(lyricResponse, lyricData, response) {
+    if (lyricResponse.data !== undefined) lyricData.push(lyricResponse.data);
+    if (response.data.songs[0].more_info.has_lyrics && lyricData !== undefined) {
+        response.data.songs[0].lyrics = lyricData;
     }
 }
 
@@ -27,86 +14,65 @@ function addQuotes(value) {
     return quotedlet;
 }
 
-function formatSongResponse(response, _song) {
-    let mediaPrevURL = response.data[_song.id].media_preview_url;
-    if (mediaPrevURL) {
-        mediaPrevURL = mediaPrevURL.replace("preview", "aac");
-
-        if (response.data[_song.id]["320kbps"]) {
-            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_320.mp4");
-        } else {
-            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_160.mp4");
+function formatSongResponse_V2(response, l, id, lyricData, axios, axiosConfig) {
+    return new Promise(function(resolve, reject) {
+        let mediaEncryptedURL =
+            response.data.songs[0].more_info.encrypted_media_url;
+        if (mediaEncryptedURL) {
+            decrypt(mediaEncryptedURL)
+                .then((res) => {
+                    formatResult(response, res, l, axios, id, axiosConfig, lyricData)
+                        .then((_res) => {
+                            resolve(_res);
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                })
+                .catch((error) => {
+                    response.data.songs[0].error = error;
+                    resolve(response);
+                });
         }
-        response.data[_song.id].media_url = mediaPrevURL;
-    }
-    response.data[_song.id]["song"] = format(response.data[_song.id]["song"]);
-    response.data[_song.id]["music"] = format(response.data[_song.id]["music"]);
-    response.data[_song.id]["singers"] = format(
-        response.data[_song.id]["singers"]
-    );
-    response.data[_song.id]["starring"] = format(
-        response.data[_song.id]["starring"]
-    );
-    response.data[_song.id]["album"] = format(response.data[_song.id]["album"]);
-    response.data[_song.id]["primary_artists"] = format(
-        response.data[_song.id]["primary_artists"]
-    );
-    response.data[_song.id]["image"] = response.data[_song.id]["image"].replace(
-        "150x150",
-        "500x500"
-    );
+    });
 }
 
-function formatSOngResponseOnSearch(response, id) {
-    let mediaPrevURL = response.data[id].media_preview_url;
-    if (mediaPrevURL) {
-        mediaPrevURL = mediaPrevURL.replace("preview", "aac");
-
-        if (response.data[id]["320kbps"]) {
-            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_320.mp4");
-        } else {
-            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_160.mp4");
+function formatResult(response, res, l, axios, id, axiosConfig, lyricData) {
+    return new Promise(function(resolve, reject) {
+        try {
+            if (l === "true") {
+                axios
+                    .get(process.env.LYRICS_DETAIL_ENDPOINT + id, axiosConfig)
+                    .then((lyricResponse) => {
+                        formatLyricResponse_V2(lyricResponse, lyricData, response);
+                        response.data.songs[0]["image"] = response.data.songs[0][
+                            "image"
+                        ].replace("150x150", "500x500");
+                        response.data.songs[0].more_info.decrypted_media_url = res.replace(
+                            /[\n\r]/g,
+                            ""
+                        );
+                        resolve(response);
+                    });
+            } else {
+                response.data.songs[0]["image"] = response.data.songs[0][
+                    "image"
+                ].replace("150x150", "500x500");
+                response.data.songs[0].more_info.decrypted_media_url = res.replace(
+                    /[\n\r]/g,
+                    ""
+                );
+                resolve(response);
+            }
+        } catch (error) {
+            reject(response);
         }
-        response.data[id].media_url = mediaPrevURL;
-    }
-    response.data[id]["song"] = format(response.data[id]["song"]);
-    response.data[id]["music"] = format(response.data[id]["music"]);
-    response.data[id]["singers"] = format(response.data[id]["singers"]);
-    response.data[id]["starring"] = format(response.data[id]["starring"]);
-    response.data[id]["album"] = format(response.data[id]["album"]);
-    response.data[id]["primary_artists"] = format(
-        response.data[id]["primary_artists"]
-    );
-    response.data[id]["image"] = response.data[id]["image"].replace(
-        "150x150",
-        "500x500"
-    );
-}
-
-function formatSongResponseForAlbumAndPlaylist(_song) {
-    let mediaPrevURL = _song.media_preview_url;
-    if (mediaPrevURL) {
-        mediaPrevURL = mediaPrevURL.replace("preview", "aac");
-
-        if (_song["320kbps"]) {
-            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_320.mp4");
-        } else {
-            mediaPrevURL = mediaPrevURL.replace("_96_p.mp4", "_160.mp4");
-        }
-        _song.media_url = mediaPrevURL;
-    }
-    _song["song"] = format(_song["song"]);
-    _song["music"] = format(_song["music"]);
-    _song["singers"] = format(_song["singers"]);
-    _song["starring"] = format(_song["starring"]);
-    _song["album"] = format(_song["album"]);
-    _song["primary_artists"] = format(_song["primary_artists"]);
-    _song["image"] = _song["image"].replace("150x150", "500x500");
+    });
 }
 
 function formatImageForPlaylistAndAlbum(response) {
     response.forEach((_obj) => {
-        _obj["image"] = _obj["image"].replace("50x50", "250x250");
+        _obj["image"] = _obj["image"].replace("150x150", "250x250");
     });
 }
 
@@ -140,60 +106,48 @@ const splitData = (str, delim) => {
     }
 };
 
-const getRelatedArtists = (artistsMap) => {
-    let modified_top_artist_array = splitData(randomKeyWord(artistsMap), ",");
+function cleanWarning(error) {
+    return error.replace(
+        /Detector is not able to detect the language reliably.\n/g,
+        ""
+    );
+}
 
-    let found = false;
-    const data = require("../routes/data");
-    modified_top_artist_array.forEach((modified_Artist, _mindex) => {
-        data.artists[0].INDIAN.forEach((artist, index) => {
-            if (artist.name.trim() === modified_Artist.name.trim()) {
-                modified_top_artist_array[_mindex] = {
-                    name: modified_Artist.name.trim(),
-                    image: artist.url,
-                    type: artist.type,
-                };
-                found = true;
+const decrypt = (url) => {
+    return new Promise(function(resolve, reject) {
+        const spawn = require("child_process").spawn;
+        const python = spawn("python", ["python/decrypt.py", url]);
+        let result = "";
+        let resultError = "";
+        python.stdout.on("data", (data) => {
+            result = data.toString();
+        });
+
+        python.stderr.on("data", (data) => {
+            resultError = cleanWarning(data.toString());
+        });
+
+        python.stdout.on("end", function() {
+            if (resultError == "") {
+                resolve(result);
+            } else {
+                console.error(
+                    `Python error, you can reproduce the error with: \n${python} ${script} ${pyArgs.join(
+            " "
+          )}`
+                );
+                const error = new Error(resultError);
+                reject(resultError);
             }
         });
     });
-    if (!found) {
-        modified_top_artist_array.forEach((modified_Artist, _mindex) => {
-            data.artists[1].WESTERN.forEach((artist) => {
-                if (artist.name.trim() === modified_Artist.name.trim()) {
-                    modified_top_artist_array[_mindex] = {
-                        name: modified_Artist.name.trim(),
-                        image: artist.url,
-                        type: artist.type,
-                    };
-                    found = true;
-                }
-            });
-        });
-    }
-
-    modified_top_artist_array.forEach((modified_Artist, _mindex) => {
-        if (modified_Artist.image === undefined) {
-            modified_top_artist_array[_mindex] = {
-                name: modified_Artist.name,
-                image: noImage,
-                type: "Unavailable",
-            };
-        }
-    });
-    return modified_top_artist_array;
 };
+
 module.exports = {
     format,
-    formatSongResponseForAlbumAndPlaylist,
-    formatSongResponse,
-    formatSOngResponseOnSearch,
-    formatLyricResponseForAlbumAndPlaylist,
-    formatLyricResponse,
+    formatSongResponse_V2,
+    formatLyricResponse_V2,
     formatImageForPlaylistAndAlbum,
     isBoolean,
-    randomKeyWord,
-    noImage,
-    splitData,
-    getRelatedArtists,
+    decrypt,
 };

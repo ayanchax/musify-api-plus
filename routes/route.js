@@ -27,7 +27,6 @@ router.get("/songs", (req, res, next) => {
     if (!helper.isBoolean(l)) {
         l = false;
     }
-
     mainPromise.push(
         axios
         .get(process.env.SONG_ENDPOINT + q, axiosConfig)
@@ -40,27 +39,33 @@ router.get("/songs", (req, res, next) => {
             song_response.forEach((_song) => {
                 promises.push(
                     axios
-                    .get(process.env.SONG_DETAILS_ENDPOINT + _song.id, axiosConfig)
+                    .get(
+                        process.env.SONG_DETAILS_ENDPOINT + _song.id,
+                        axios,
+                        axiosConfig
+                    )
                     .then((response) => {
-                        helper.formatSongResponse(response, _song);
-                        if (l === "true") {
-                            lyricPromises.push(
-                                axios
-                                .get(
-                                    process.env.LYRICS_DETAIL_ENDPOINT + _song.id,
-                                    axiosConfig
-                                )
-                                .then((lyricResponse) => {
-                                    helper.formatLyricResponse(
-                                        lyricResponse,
-                                        lyricData,
-                                        response,
-                                        _song
-                                    );
-                                })
-                            );
-                        }
-                        songs.push(response.data);
+                        lyricPromises.push(
+                            helper
+                            .formatSongResponse_V2(
+                                response,
+                                l,
+                                _song.id,
+                                lyricData,
+                                axios,
+                                axiosConfig
+                            )
+                            .then((_rs) => {
+                                songs.push(_rs.data.songs[0]);
+                            })
+                        );
+                    })
+                    .catch((error) => {
+                        res.status(500).json({
+                            msg: messages.ERROR,
+                            diagnostics: error,
+                            error: 500,
+                        });
                     })
                 );
             });
@@ -216,23 +221,22 @@ router.get("/song", (req, res, next) => {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
 
-            var _song = song_response[q];
-            helper.formatSongResponse(response, _song);
-            if (l === "true") {
-                lyricPromises.push(
-                    axios
-                    .get(process.env.LYRICS_DETAIL_ENDPOINT + _song.id, axiosConfig)
-                    .then((lyricResponse) => {
-                        helper.formatLyricResponse(
-                            lyricResponse,
-                            lyricData,
-                            response,
-                            _song
-                        );
-                    })
-                );
-            }
-            song = response.data[q];
+            var _song = song_response.songs[0];
+
+            lyricPromises.push(
+                helper
+                .formatSongResponse_V2(
+                    response,
+                    l,
+                    _song.id,
+                    lyricData,
+                    axios,
+                    axiosConfig
+                )
+                .then((_rs) => {
+                    song = _rs.data.songs[0];
+                })
+            );
             Promise.all(mainPromise).then(() => {
                 Promise.all(lyricPromises).then(() => {
                     res.status(200).json(song);
@@ -254,6 +258,7 @@ router.get("/album", (req, res, next) => {
     axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
+    let promises = [];
     let album = {};
     let lyricData = [];
     const q = req.query.albumid;
@@ -278,28 +283,53 @@ router.get("/album", (req, res, next) => {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
 
-            var songs = album_Response.songs;
-
+            var songs = album_Response.list;
+            var _songs = [];
+            var totalDurationOfSongs = 0;
             songs.forEach((_song) => {
-                helper.formatSongResponseForAlbumAndPlaylist(_song);
-                if (l === "true") {
-                    lyricPromises.push(
-                        axios
-                        .get(process.env.LYRICS_DETAIL_ENDPOINT + _song.id, axiosConfig)
-                        .then((lyricResponse) => {
-                            helper.formatLyricResponseForAlbumAndPlaylist(
-                                lyricResponse,
+                totalDurationOfSongs =
+                    parseInt(totalDurationOfSongs) + parseInt(_song.more_info.duration);
+                promises.push(
+                    axios
+                    .get(
+                        process.env.SONG_DETAILS_ENDPOINT + _song.id,
+                        axios,
+                        axiosConfig
+                    )
+                    .then((response) => {
+                        lyricPromises.push(
+                            helper
+                            .formatSongResponse_V2(
+                                response,
+                                l,
+                                _song.id,
                                 lyricData,
-                                _song
-                            );
-                        })
-                    );
-                }
+                                axios,
+                                axiosConfig
+                            )
+                            .then((_rs) => {
+                                _songs.push(_rs.data.songs[0]);
+                            })
+                        );
+                    })
+                    .catch((error) => {
+                        res.status(500).json({
+                            msg: messages.ERROR,
+                            diagnostics: error,
+                            error: 500,
+                        });
+                    })
+                );
             });
+            response.data.list = {};
+            response.data.list = _songs;
             album = response.data;
+            album["totalDurationOfSongs"] = totalDurationOfSongs;
             Promise.all(mainPromise).then(() => {
-                Promise.all(lyricPromises).then(() => {
-                    res.status(200).json(album);
+                Promise.all(promises).then(() => {
+                    Promise.all(lyricPromises).then(() => {
+                        res.status(200).json(album);
+                    });
                 });
             });
         })
@@ -319,6 +349,7 @@ router.get("/playlist", (req, res, next) => {
     let mainPromise = [];
     let lyricPromises = [];
     let lyricData = [];
+    let promises = [];
     let playlist = {};
     const q = req.query.pid;
     if (q == null || q === "" || q === undefined) {
@@ -341,33 +372,54 @@ router.get("/playlist", (req, res, next) => {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
 
-            var songs = playlist_Response.songs;
+            var songs = playlist_Response.list;
+            var _songs = [];
             var totalDurationOfSongs = 0;
             songs.forEach((_song) => {
-                helper.formatSongResponseForAlbumAndPlaylist(_song);
                 totalDurationOfSongs =
-                    parseInt(totalDurationOfSongs) + parseInt(_song.duration);
-                if (l === "true") {
-                    lyricPromises.push(
-                        axios
-                        .get(process.env.LYRICS_DETAIL_ENDPOINT + _song.id, axiosConfig)
-                        .then((lyricResponse) => {
-                            helper.formatLyricResponseForAlbumAndPlaylist(
-                                lyricResponse,
+                    parseInt(totalDurationOfSongs) + parseInt(_song.more_info.duration);
+                promises.push(
+                    axios
+                    .get(
+                        process.env.SONG_DETAILS_ENDPOINT + _song.id,
+                        axios,
+                        axiosConfig
+                    )
+                    .then((response) => {
+                        lyricPromises.push(
+                            helper
+                            .formatSongResponse_V2(
+                                response,
+                                l,
+                                _song.id,
                                 lyricData,
-                                _song
-                            );
-                        })
-                    );
-                }
+                                axios,
+                                axiosConfig
+                            )
+                            .then((_rs) => {
+                                _songs.push(_rs.data.songs[0]);
+                            })
+                        );
+                    })
+                    .catch((err) => {
+                        res.status(500).json({
+                            msg: messages.ERROR,
+                            diagnostics: err,
+                            error: 500,
+                        });
+                    })
+                );
             });
 
+            response.data.list = {};
+            response.data.list = _songs;
             playlist = response.data;
             playlist["totalDurationOfSongs"] = totalDurationOfSongs;
-
             Promise.all(mainPromise).then(() => {
-                Promise.all(lyricPromises).then(() => {
-                    res.status(200).json(playlist);
+                Promise.all(promises).then(() => {
+                    Promise.all(lyricPromises).then(() => {
+                        res.status(200).json(playlist);
+                    });
                 });
             });
         })
@@ -421,10 +473,6 @@ router.get("/lyrics", (req, res, next) => {
 router.get("/search", (req, res, next) => {
     axiosConfig.setResponseHeader(res);
     let mainPromise = [];
-    let songPromise = [];
-    let albumPromise = [];
-    let playlistPromise = [];
-    let artistsMap = [];
     const q = req.query.query;
     if (q == null || q === "" || q === undefined) {
         res.status(404).json({
@@ -441,75 +489,26 @@ router.get("/search", (req, res, next) => {
             if (response_data.length == 0) {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
-
-            let _data = [];
+            let _data = {};
             let songs = response_data["songs"]["data"];
-            songs.forEach((_song, index) => {
-                songPromise.push(
-                    axios
-                    .get(process.env.SONG_DETAILS_ENDPOINT + _song.id, axiosConfig)
-                    .then((response) => {
-                        helper.formatSongResponse(response, _song);
-                        songs[index].songDetail = response.data[_song.id];
-                        artistsMap.push(response.data[_song.id].primary_artists);
-                    })
-                );
-            });
             let albums = response_data["albums"]["data"];
-            albums.forEach((_album, index) => {
-                let songsPerAlbum = [];
-                albumPromise.push(
-                    axios
-                    .get(process.env.ALBUM_DETAILS_ENDPOINT + _album.id, axiosConfig)
-                    .then((response) => {
-                        var album_Response = response.data;
-                        var songs = album_Response.songs;
-                        songs.forEach((_song) => {
-                            helper.formatSongResponseForAlbumAndPlaylist(_song);
-                            songsPerAlbum.push(_song);
-                        });
-                        albums[index].songs = songsPerAlbum;
-                    })
-                );
-            });
             let playlists = response_data["playlists"]["data"];
-            playlists.forEach((_playlist, index) => {
-                let songsPerPlaylist = [];
-                playlistPromise.push(
-                    axios
-                    .get(
-                        process.env.PLAYLIST_DETAILS_ENDPOINT + _playlist.id,
-                        axiosConfig
-                    )
-                    .then((response) => {
-                        var playlist_Response = response.data;
-                        var songs = playlist_Response.songs;
-                        songs.forEach((_song) => {
-                            helper.formatSongResponseForAlbumAndPlaylist(_song);
-                            songsPerPlaylist.push(_song);
-                        });
-                        playlists[index].songs = songsPerPlaylist;
-                    })
-                );
-            });
-
-            let topResult = response_data["topquery"]["data"];
+            let artists = response_data["artists"]["data"];
+            let topQuery = response_data["topquery"]["data"];
+            let shows = response_data["shows"]["data"];
+            let episodes = response_data["episodes"]["data"];
             Promise.all(mainPromise).then(() => {
-                Promise.all(songPromise).then(() => {
-                    let artists = helper.getRelatedArtists(artistsMap);
-                    Promise.all(albumPromise).then(() => {
-                        Promise.all(playlistPromise).then(() => {
-                            _data.push({
-                                songs,
-                                albums,
-                                playlists,
-                                artists,
-                                topResult,
-                            });
-                            res.status(200).json(_data);
-                        });
-                    });
-                });
+                _data = {
+                    songs: songs,
+                    playlists: playlists,
+                    albums: albums,
+                    artists: artists,
+                    topQuery: topQuery,
+                    shows: shows,
+                    episodes: episodes,
+                };
+
+                res.status(200).json(_data);
             });
         })
         .catch((error) => {
@@ -531,4 +530,5 @@ router.get("/boilerplate", (req, res, next) => {
     });
     res.status(200).json(response);
 });
+
 module.exports = router;
