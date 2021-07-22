@@ -330,7 +330,7 @@ router.get("/album", (req, res, next) => {
 
 //get playlist by playlist identifier
 router.get("/playlist", (req, res, next) => {
-    //axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
     let lyricData = [];
@@ -355,6 +355,7 @@ router.get("/playlist", (req, res, next) => {
             var playlist_Response = response.data;
             if (playlist_Response.length == 0) {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
+                return;
             }
 
             if (
@@ -363,6 +364,7 @@ router.get("/playlist", (req, res, next) => {
                 playlist_Response.list === ""
             ) {
                 res.status(200).json(playlist_Response);
+                return;
             }
             var songs = playlist_Response.list;
 
@@ -408,7 +410,7 @@ router.get("/playlist", (req, res, next) => {
         .catch((err) => {
             res.status(500).json({
                 msg: messages.ERROR,
-                diagnostics: err,
+                diagnostics: err.message,
                 error: 500,
             });
         })
