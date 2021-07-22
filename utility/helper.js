@@ -126,7 +126,7 @@ const decrypt = (url) => {
 
         python.stderr.on("data", (data) => {
             resultError = cleanWarning(data.toString());
-            console.log(resultError);
+            console.log(data.toString());
         });
 
         python.stdout.on("end", function() {
