@@ -518,8 +518,12 @@ router.get("/boilerplate", (req, res, next) => {
 });
 
 router.get("/checkPlaylist", (req, res, next) => {
+    const q = "155227885";
     axios
-        .get(process.env.PLAYLIST_DETAILS_ENDPOINT + "155227885")
+        .get(
+            "https://www.jiosaavn.com/api.php?__call=playlist.getDetails&api_version=4&_format=json&_marker=0&ctx=web6dot0&listid=" +
+            q
+        )
         .then((response) => {
             res.status(200).json(response.data);
         });
