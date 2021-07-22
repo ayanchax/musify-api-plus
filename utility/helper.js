@@ -120,7 +120,7 @@ const decrypt = (url) => {
         let result = "";
         let resultError = "";
         python.stdout.on("data", (data) => {
-            result = data.toString();
+            result += data.toString();
             console.log(result);
         });
 
