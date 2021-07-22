@@ -358,7 +358,7 @@ router.get("/playlist", (req, res, next) => {
     }
     mainPromise.push(
         axios
-        .get(process.env.PLAYLIST_DETAILS_ENDPOINT + q)
+        .get(process.env.PLAYLIST_DETAILS_ENDPOINT + q, axios, axiosConfig)
         .then((response) => {
             var playlist_Response = response.data;
             if (playlist_Response.length == 0) {
@@ -381,7 +381,11 @@ router.get("/playlist", (req, res, next) => {
                     parseInt(totalDurationOfSongs) + parseInt(_song.more_info.duration);
                 promises.push(
                     axios
-                    .get(process.env.SONG_DETAILS_ENDPOINT + _song.id, axios)
+                    .get(
+                        process.env.SONG_DETAILS_ENDPOINT + _song.id,
+                        axios,
+                        axiosConfig
+                    )
                     .then((response) => {
                         lyricPromises.push(
                             helper
