@@ -330,7 +330,7 @@ router.get("/album", (req, res, next) => {
 
 //get playlist by playlist identifier
 router.get("/playlist", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    //axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
     let lyricData = [];
@@ -513,17 +513,14 @@ router.get("/boilerplate", (req, res, next) => {
     res.status(200).json(response);
 });
 
-router.get("/checkout", async(req, res, next) => {
-    var result = [];
-    await axios
+router.get("/checkout", (req, res, next) => {
+    axios
         .get(
             "https://www.jiosaavn.com/api.php?__call=playlist.getDetails&api_version=4&_format=json&_marker=0&ctx=web6dot0&listid=84576174"
         )
         .then((response) => {
-            result.push(response.data);
-        })
-        .finally(() => {
-            res.status(200).json(result);
+            // console.log(response);
+            res.status(200).json(response.data);
         });
 });
 
