@@ -361,12 +361,13 @@ router.get("/playlist", (req, res, next) => {
         .get(process.env.PLAYLIST_DETAILS_ENDPOINT + q, axiosConfig)
         .then((response) => {
             var playlist_Response = response.data;
+            console.log("Here");
+            console.log(response.data);
             if (playlist_Response.length == 0) {
                 res.status(404).json(messages.NO_SEARCH_RESULTS);
             }
 
             var songs = playlist_Response.list;
-            console.log(songs);
             var _songs = [];
             var totalDurationOfSongs = 0;
             songs.forEach((_song) => {
