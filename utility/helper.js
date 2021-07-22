@@ -132,9 +132,7 @@ const decrypt = (url) => {
                 resolve(result);
             } else {
                 console.error(
-                    `Python error, you can reproduce the error with: \n${python} ${script} ${pyArgs.join(
-            " "
-          )}`
+                    `Python error, you can reproduce the error with: \n${python} python/decrypt.py}`
                 );
                 const error = new Error(resultError);
                 reject(resultError);
