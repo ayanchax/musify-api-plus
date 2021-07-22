@@ -366,6 +366,7 @@ router.get("/playlist", (req, res, next) => {
             }
 
             var songs = playlist_Response.list;
+            console.log(songs);
             var _songs = [];
             var totalDurationOfSongs = 0;
             songs.forEach((_song) => {
@@ -410,7 +411,6 @@ router.get("/playlist", (req, res, next) => {
             });
         })
         .catch((err) => {
-            console.log(err);
             res.status(500).json({
                 msg: messages.ERROR,
                 diagnostics: err,
