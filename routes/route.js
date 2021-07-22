@@ -513,4 +513,15 @@ router.get("/boilerplate", (req, res, next) => {
     res.status(200).json(response);
 });
 
+router.get("/checkout", (req, res, next) => {
+    axios
+        .get(
+            "https://www.jiosaavn.com/api.php?__call=playlist.getDetails&api_version=4&_format=json&_marker=0&ctx=web6dot0&listid=84576174"
+        )
+        .then((response) => {
+            console.log(response.data);
+            res.status(200).json(response.data);
+        });
+});
+
 module.exports = router;
