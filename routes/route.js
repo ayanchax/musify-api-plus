@@ -513,8 +513,8 @@ router.get("/boilerplate", (req, res, next) => {
     res.status(200).json(response);
 });
 
-router.get("/checkout", (req, res, next) => {
-    axios
+router.get("/checkout", async(req, res, next) => {
+    await axios
         .get(
             "https://www.jiosaavn.com/api.php?__call=playlist.getDetails&api_version=4&_format=json&_marker=0&ctx=web6dot0&listid=84576174"
         )
