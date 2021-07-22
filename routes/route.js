@@ -409,6 +409,13 @@ router.get("/playlist", (req, res, next) => {
                 });
             });
         })
+        .catch((err) => {
+            res.status(500).json({
+                msg: messages.ERROR,
+                diagnostics: err,
+                error: 500,
+            });
+        })
     );
 });
 
@@ -508,6 +515,14 @@ router.get("/boilerplate", (req, res, next) => {
         regional: data.regionalSection,
     });
     res.status(200).json(response);
+});
+
+router.get("/checkPlaylist", (req, res, next) => {
+    axios
+        .get(process.env.PLAYLIST_DETAILS_ENDPOINT + "155227885")
+        .then((response) => {
+            res.status(200).json(response.data);
+        });
 });
 
 module.exports = router;
