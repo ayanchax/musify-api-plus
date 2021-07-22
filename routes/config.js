@@ -42,6 +42,7 @@ const axiosConfig = {
         "Cache-Control": "no-cache",
         "User-Agent": getRandomUserAgent(userAgents),
     },
+    timeout: 10000,
 };
 
 function setResponseHeader(res) {
