@@ -312,13 +312,6 @@ router.get("/album", (req, res, next) => {
                             })
                         );
                     })
-                    .catch((error) => {
-                        res.status(500).json({
-                            msg: messages.ERROR,
-                            diagnostics: error,
-                            error: 500,
-                        });
-                    })
                 );
             });
             response.data.list = {};
@@ -400,13 +393,6 @@ router.get("/playlist", (req, res, next) => {
                                 _songs.push(_rs.data.songs[0]);
                             })
                         );
-                    })
-                    .catch((err) => {
-                        res.status(500).json({
-                            msg: messages.ERROR,
-                            diagnostics: err,
-                            error: 500,
-                        });
                     })
                 );
             });
