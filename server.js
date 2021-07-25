@@ -21,7 +21,7 @@ app.use("/api/" + key, router);
 
 // 4 Listening to the express server.
 // this method runs at the entry point of starting the node js applications
-const port = process.env.PORT;
+const port = process.env.PORT ? process.env.PORT : 3000;
 app.listen(port, () => {
     console.log("API started at port: " + port);
 });
