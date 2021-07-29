@@ -113,7 +113,11 @@ router.get("/playlists", (req, res, next) => {
             console.log(error);
             res
                 .status(500)
-                .json({ msg: messages.ERROR, diagnostics: error, error: 500 });
+                .json({
+                    msg: messages.ERROR,
+                    diagnostics: error.message,
+                    error: 500,
+                });
         })
     );
 });
