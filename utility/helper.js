@@ -52,6 +52,18 @@ function formatResult(response, res, l, axios, id, axiosConfig, lyricData) {
                             /[\n\r]/g,
                             ""
                         );
+                        var _primary_artist_labels = [];
+
+                        try {
+                            response.data.songs[0].more_info.artistMap.primary_artists.forEach(
+                                (_pa) => {
+                                    _primary_artist_labels.push(_pa.name);
+                                }
+                            );
+                        } catch (error) {}
+
+                        response.data.songs[0].more_info.primary_artists_label =
+                            _primary_artist_labels.toString();
                         resolve(response);
                     });
             } else {
@@ -62,6 +74,18 @@ function formatResult(response, res, l, axios, id, axiosConfig, lyricData) {
                     /[\n\r]/g,
                     ""
                 );
+                var _primary_artist_labels = [];
+
+                try {
+                    response.data.songs[0].more_info.artistMap.primary_artists.forEach(
+                        (_pa) => {
+                            _primary_artist_labels.push(_pa.name);
+                        }
+                    );
+                } catch (error) {}
+
+                response.data.songs[0].more_info.primary_artists_label =
+                    _primary_artist_labels.toString();
                 resolve(response);
             }
         } catch (error) {
