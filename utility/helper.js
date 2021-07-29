@@ -140,7 +140,13 @@ function cleanWarning(error) {
 const decrypt = (url) => {
     return new Promise(function(resolve, reject) {
         const spawn = require("child_process").spawn;
-        const python = spawn("python3", ["python/decrypt.py", url]);
+        const dotenv = require("dotenv");
+        dotenv.config();
+
+        const python = spawn(process.env === "prod" ? "python3" : "python", [
+            "python/decrypt.py",
+            url,
+        ]);
         let result = "";
         let resultError = "";
         python.stdout.on("data", (data) => {
