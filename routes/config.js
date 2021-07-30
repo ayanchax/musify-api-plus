@@ -1,4 +1,3 @@
-
 const userAgents = [
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/37.0.2062.94 Chrome/37.0.2062.94 Safari/537.36",
     "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36",
@@ -44,10 +43,9 @@ const axiosConfig = {
         "User-Agent": getRandomUserAgent(userAgents),
     },
     timeout: 10000,
-	rejectUnauthorized:false,
-}
+};
 
-	function setResponseHeader(res) {
+function setResponseHeader(res) {
     res.setHeader("Content-Type", "application/json");
 }
 module.exports = { axiosConfig, setResponseHeader };

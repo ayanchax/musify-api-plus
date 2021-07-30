@@ -6,11 +6,8 @@ const router = require("./routes/route");
 const app = express();
 const dotenv = require("dotenv");
 dotenv.config();
-const fs = require('fs')
-const  https = require('https')
-const  rootCas = require('ssl-root-cas').create();
-
-https.globalAgent.options.ca = rootCas;
+const fs = require("fs");
+const https = require("https");
 //1 add middleware setup
 app.use(cors());
 app.use(bodyparser.json());
@@ -26,10 +23,6 @@ app.use("/api/" + key, router);
 // 4 Listening to the express server.
 // this method runs at the entry point of starting the node js applications
 const port = process.env.PORT ? process.env.PORT : 3000;
-https.createServer({
-	  key: fs.readFileSync('selfsigned.key'),
-	  cert: fs.readFileSync('selfsigned.crt')
-}, app)
-.listen(port,  () =>{
-	  console.log("API started at port: "+ port)
-})
+app.listen(port, () => {
+    console.log("API started at port: " + port);
+});

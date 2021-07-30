@@ -111,13 +111,11 @@ router.get("/playlists", (req, res, next) => {
         })
         .catch((error) => {
             console.log(error);
-            res
-                .status(500)
-                .json({
-                    msg: messages.ERROR,
-                    diagnostics: error.message,
-                    error: 500,
-                });
+            res.status(500).json({
+                msg: messages.ERROR,
+                diagnostics: error.message,
+                error: 500,
+            });
         })
     );
 });
