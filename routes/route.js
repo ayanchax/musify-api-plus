@@ -9,7 +9,7 @@ dotenv.config();
 
 // Get Songs Detail by Query
 router.get("/songs", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    //axiosConfig.setResponseHeader(res);
     let promises = [];
     let mainPromise = [];
     let lyricPromises = [];
@@ -83,7 +83,7 @@ router.get("/songs", (req, res, next) => {
 
 // Get Playlists Details
 router.get("/playlists", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    //  axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let playlists = {};
     const q = req.query.query;
@@ -122,7 +122,7 @@ router.get("/playlists", (req, res, next) => {
 
 // get albums details
 router.get("/albums", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    //   axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let albums = {};
     const q = req.query.query;
@@ -158,7 +158,7 @@ router.get("/albums", (req, res, next) => {
 
 // get artists Details
 router.get("/artists", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    //  axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let artists = {};
     const q = req.query.query;
@@ -194,7 +194,7 @@ router.get("/artists", (req, res, next) => {
 
 // Get Song by song identifier.
 router.get("/song", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    //axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
     let song = {};
@@ -254,7 +254,7 @@ router.get("/song", (req, res, next) => {
 
 // get album by album identifier
 router.get("/album", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    //  axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
     let promises = [];
@@ -333,7 +333,7 @@ router.get("/album", (req, res, next) => {
 
 //get playlist by playlist identifier
 router.get("/playlist", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    // axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
     let lyricData = [];
@@ -422,7 +422,7 @@ router.get("/playlist", (req, res, next) => {
 
 // get lyrics by song identifier
 router.get("/lyrics", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    // axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyrics = {};
     const q = req.query.songid;
@@ -458,7 +458,7 @@ router.get("/lyrics", (req, res, next) => {
 
 // search by query - universal result
 router.get("/search", (req, res, next) => {
-    axiosConfig.setResponseHeader(res);
+    // axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     const q = req.query.query;
     if (q == null || q === "" || q === undefined) {
