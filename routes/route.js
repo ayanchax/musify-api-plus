@@ -9,7 +9,7 @@ dotenv.config();
 
 // Get Songs Detail by Query
 router.get("/songs", (req, res, next) => {
-    //axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let promises = [];
     let mainPromise = [];
     let lyricPromises = [];
@@ -83,7 +83,7 @@ router.get("/songs", (req, res, next) => {
 
 // Get Playlists Details
 router.get("/playlists", (req, res, next) => {
-    //  axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let playlists = {};
     const q = req.query.query;
@@ -122,7 +122,7 @@ router.get("/playlists", (req, res, next) => {
 
 // get albums details
 router.get("/albums", (req, res, next) => {
-    //   axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let albums = {};
     const q = req.query.query;
@@ -158,7 +158,7 @@ router.get("/albums", (req, res, next) => {
 
 // get artists Details
 router.get("/artists", (req, res, next) => {
-    //  axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let artists = {};
     const q = req.query.query;
@@ -194,7 +194,7 @@ router.get("/artists", (req, res, next) => {
 
 // Get Song by song identifier.
 router.get("/song", (req, res, next) => {
-    //axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
     let song = {};
@@ -254,7 +254,7 @@ router.get("/song", (req, res, next) => {
 
 // get album by album identifier
 router.get("/album", (req, res, next) => {
-    //  axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
     let promises = [];
@@ -333,7 +333,7 @@ router.get("/album", (req, res, next) => {
 
 //get playlist by playlist identifier
 router.get("/playlist", (req, res, next) => {
-    // axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyricPromises = [];
     let lyricData = [];
@@ -422,7 +422,7 @@ router.get("/playlist", (req, res, next) => {
 
 // get lyrics by song identifier
 router.get("/lyrics", (req, res, next) => {
-    // axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     let lyrics = {};
     const q = req.query.songid;
@@ -458,7 +458,7 @@ router.get("/lyrics", (req, res, next) => {
 
 // search by query - universal result
 router.get("/search", (req, res, next) => {
-    // axiosConfig.setResponseHeader(res);
+    axiosConfig.setResponseHeader(res);
     let mainPromise = [];
     const q = req.query.query;
     if (q == null || q === "" || q === undefined) {
@@ -527,69 +527,6 @@ router.get("/checkout", (req, res, next) => {
             // console.log(response);
             res.status(200).json(response.data);
         });
-});
-
-router.get("/share/media/", (req, res) => {
-    const path = require("path");
-    const pathToIndex = path
-        .join(__dirname, "public/index.html")
-        .replace("routes\\", "");
-    const fs = require("fs");
-    let dataRead = false;
-    const raw = fs.readFileSync(
-        pathToIndex, { encoding: "utf8", flag: "r" },
-        (err, data) => {
-            if (data) {
-                dataRead = true;
-            }
-        }
-    );
-    let _currentUrl =
-        req.query.url !== undefined ?
-        req.query.url :
-        "https://musify-7ba7c.web.app/";
-    const _title =
-        req.query.title !== undefined ?
-        req.query.title.replace(/ /g, ".") :
-        "Musify - Enjoy Ad Free Premium Content Music";
-    const _image =
-        req.query.imageSrc !== undefined ?
-        req.query.imageSrc :
-        "https://musify-7ba7c.web.app/static/media/logo.6714a076.png";
-    const _description =
-        req.query.description !== undefined ?
-        req.query.description.replace(/ /g, ".") :
-        "Tired of listening to ads and premium subscriptions while streaming music? Well you might like my new music streaming app #musify in this case. " +
-        "Pls visit https://musify-7ba7c.web.app/ for fresh music content ad free. You just need to sign in using your google credentials and enjoy high quality(320, 640, 1080kbps) ad free music. " +
-        "The mobile app for this is coming soon as well.";
-    const _hashtag =
-        req.query.hashtag !== undefined ? req.query.hashtag : "#musify";
-    const meta = `<meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="csrf_token" content="" />
-    <meta property="type" content="website" />
-    <meta property="url" content=${_currentUrl} />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="msapplication-TileColor" content="#ffffff" />
-    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
-    <meta name="theme-color" content="#ffffff" />
-    <meta name="_token" content="" />
-    <meta name="robots" content="noodp" />
-    <meta property="title" content=${_title} />
-    <meta name="description" content=${_description} />
-    <meta property="image" content=${_image} />
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content=${_title} />
-    <meta property="og:hashtag" content=${_hashtag} />
-    <meta property="og:image" content=${_image} />
-    <meta content="image/*" property="og:image:type" />
-    <meta property="og:url" content=${_currentUrl} />
-    <meta property="og:site_name" content="Musify" />
-    <meta property="og:description" content=${_description} />
-    <title>${req.query.title}</title>`;
-    const updated = raw.replace("__PAGE_META__", meta);
-    res.send(updated);
 });
 
 module.exports = router;
