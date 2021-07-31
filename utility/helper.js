@@ -142,8 +142,7 @@ const decrypt = (url) => {
         const spawn = require("child_process").spawn;
         const dotenv = require("dotenv");
         dotenv.config();
-
-        const python = spawn(process.env === "prod" ? "python3" : "python", [
+        const python = spawn(process.env.MODE === "prod" ? "python3" : "python", [
             "python/decrypt.py",
             url,
         ]);
